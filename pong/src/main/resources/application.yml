@@ -1,0 +1,14 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: pong
+
+logging:
+  level:
+    root: fatal
+    com.mint: info
+  file:
+    path: ponglogs
+    name: ${logging.file.path}/log-${server.port}.txt

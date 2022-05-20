@@ -1,0 +1,17 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ping
+  reactor:
+    debug-agent:
+      enabled: true
+
+logging:
+  level:
+    root: fatal
+    com.mint.ping.service.Ping: info
+  file:
+    path: pinglogs
+    name: ${logging.file.path}/log-${server.port}.txt
