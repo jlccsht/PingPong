@@ -10,8 +10,8 @@ logging:
     root: fatal
     com.mint: info
   file:
-    path: pong-logs
-    name: ${logging.file.path}/log-${server.port}.txt
+    path: run/pong-logs/
+    name: ${logging.file.path}log-${server.port}.txt
 
 pong:
   time-window-nano: 1000_000_000

@@ -4,6 +4,7 @@ import com.mint.ping.PingApplication;
 import com.mint.ping.service.PingService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(classes = PingApplication.class)
 class AutoPingTest {
 
+    @Value("${logging.file.path}")
+    private String strPath;
+
     @Autowired
     private WebTestClient client;
 
@@ -39,12 +43,11 @@ class AutoPingTest {
     @Order(1)
     void say() throws Exception {
         Assertions.assertDoesNotThrow(() -> {
-            autoPing.setNumber(100);
+            autoPing.setNumber(5);
             autoPing.run();
         });
 
         Map<String, Integer> map = new HashMap<>();
-        String strPath = "D:\\MCA\\ping_pong\\PingPong\\ping\\ping-logs\\";
         try {
             logRealCheck(map, strPath);
         } catch (IOException e) {
@@ -57,7 +60,6 @@ class AutoPingTest {
     @DisplayName("rps is less than or eaqual to 2")
     void logCheck() throws IOException {
         Map<String, Integer> map = new HashMap<>();
-        String strPath = "D:\\MCA\\ping_pong\\PingPong\\run\\pinglogs\\";
         try {
             logRealCheck(map, strPath);
         } catch (IOException e) {

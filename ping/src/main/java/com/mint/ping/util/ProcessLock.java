@@ -1,6 +1,7 @@
 package com.mint.ping.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.FileNotFoundException;
@@ -18,17 +19,16 @@ import java.nio.channels.FileLock;
  * in lock file and current time, <tt>TIME_WINDOW_NANO</tt>, <tt>MAX_LOCK_NUMBER</tt></p>
  */
 @Slf4j
-@Component
 public class ProcessLock implements Serializable {
 
     /** Maximum number of locks allowed */
-    private final int MAX_LOCK_NUMBER = 2;
+    private int maxLockNumber = 2;
 
     /** time window of process lock, in milliseconds */
-    private final int TIME_WINDOW_NANO = 1000_000_000;
+    private int timeWindowNano = 1000_000_000;
 
     /** file name of process lock */
-    private final String LOCK_FILE_NAME = "lock.txt";
+    private String lockFileName = "run/lock.txt";
 
     /** time of process lock acquired */
     private long lockTime;
@@ -45,10 +45,27 @@ public class ProcessLock implements Serializable {
     private RandomAccessFile file = null;
     private FileChannel channel = null;
     private FileLock lock = null;
+    private boolean status;
+
+    public boolean isStatus() {
+        return status;
+    }
 
     public ProcessLock() {
+        init(this.lockFileName);
+    }
+
+    public ProcessLock(int maxLockNumber, int timeWindowNano, String lockFileName ) {
+        this.maxLockNumber = maxLockNumber;
+        this.timeWindowNano = timeWindowNano;
+        this.lockFileName = lockFileName;
+
+        init(this.lockFileName);
+    }
+
+    private void init(String lockFileName) {
         try {
-            file = new RandomAccessFile(LOCK_FILE_NAME, "rw");
+            file = new RandomAccessFile(lockFileName, "rw");
             channel = file.getChannel();
         } catch (FileNotFoundException e) {
             canLock = false;
@@ -57,16 +74,19 @@ public class ProcessLock implements Serializable {
 
     public synchronized boolean tryLock() {
         if (!canLock) {
+            status = false;
             return false;
         }
         try {
             lock = channel.tryLock(1, 10, false);
             if (lock == null) { // Failed to acquire file lock
+                status = false;
                 return false;
             }
 
             // process lock can acquire as lock file is empty
             if (file.length() == 0) {
+                status = true;
                 this.updateLock();
                 return true;
             }
@@ -78,11 +98,13 @@ public class ProcessLock implements Serializable {
             long nanoTime = System.nanoTime();
 
             // number of lock in current time window reach max value, can not acquire lock
-            if (nanoTime < this.lockTime + TIME_WINDOW_NANO
-                    && this.lockNumber >= MAX_LOCK_NUMBER) {
+            if (nanoTime < this.lockTime + timeWindowNano
+                    && this.lockNumber >= maxLockNumber) {
+                status = false;
                 return false;
             }
 
+            status = true;
             // update lock info when lock acquired
             this.updateLock();
             return true;
@@ -94,6 +116,7 @@ public class ProcessLock implements Serializable {
 
     public synchronized void unlock() {
         try {
+            status = false;
             if (lock != null) {
                 lock.release();
             }
@@ -112,13 +135,13 @@ public class ProcessLock implements Serializable {
         try {
             long nanoTime = System.nanoTime();
             if (file.length() == 0 ||
-                    nanoTime >= this.lockTime + TIME_WINDOW_NANO) {
+                    nanoTime >= this.lockTime + timeWindowNano) {
                 // when current time exceed lock time window, set up a new process lock.
                 this.file.seek(0);
                 file.writeLong(nanoTime);
                 file.write(1);
-            } else if (nanoTime < this.lockTime + TIME_WINDOW_NANO
-                    && this.lockNumber < MAX_LOCK_NUMBER) {
+            } else if (nanoTime < this.lockTime + timeWindowNano
+                    && this.lockNumber < maxLockNumber) {
                 // The current time window has not reach the maximum number of locks.
                 this.file.seek(0);
                 file.writeLong(this.lockTime);
