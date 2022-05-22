@@ -1,7 +1,7 @@
 package com.mint.ping.task;
 
 import com.mint.ping.PingApplication;
-import com.mint.ping.service.Ping;
+import com.mint.ping.service.PingService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux;
@@ -33,7 +33,7 @@ class AutoPingTest {
     private AutoPing autoPing;
 
     @Autowired
-    private Ping ping;
+    private PingService ping;
 
     @Test
     @Order(1)
@@ -44,7 +44,7 @@ class AutoPingTest {
         });
 
         Map<String, Integer> map = new HashMap<>();
-        String strPath = "D:\\MCA\\ping_pong\\PingPong\\ping\\pinglogs\\";
+        String strPath = "D:\\MCA\\ping_pong\\PingPong\\ping\\ping-logs\\";
         try {
             logRealCheck(map, strPath);
         } catch (IOException e) {
@@ -54,7 +54,7 @@ class AutoPingTest {
 
     @Test
     @Order(2)
-    @DisplayName("每秒发出请求数小于等于2")
+    @DisplayName("rps is less than or eaqual to 2")
     void logCheck() throws IOException {
         Map<String, Integer> map = new HashMap<>();
         String strPath = "D:\\MCA\\ping_pong\\PingPong\\run\\pinglogs\\";

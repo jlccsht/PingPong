@@ -68,9 +68,11 @@ class HelloWorldHandlerTest {
     void sayWorld() {
         when(service.sayWorld()).thenReturn("World");
         ConcurrentHashMap<HttpStatus, Map<Long, Integer>> outerMap = getHttpStatusMapConcurrentHashMap();
-        // 验证包含两个状态码
+
+        // verification contains two status codes.
         assertEquals(2, outerMap.size());
-        // 验证正常应答每秒不起过一次
+
+        // verify that the normal answer does not take more than once per second.
         Iterator<Integer> iterator = outerMap.get(HttpStatus.OK).values().iterator();
         boolean bOK = true;
         while (iterator.hasNext()) {
@@ -102,7 +104,7 @@ class HelloWorldHandlerTest {
     }
 
 
-    // 生成测试数据
+    // Generate test data
     private ConcurrentHashMap<HttpStatus, Map<Long, Integer>> getHttpStatusMapConcurrentHashMap() {
         MockServerHttpRequest request = MockServerHttpRequest
                 .post("/sayWorld")

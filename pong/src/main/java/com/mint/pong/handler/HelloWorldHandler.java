@@ -3,6 +3,7 @@ package com.mint.pong.handler;
 import com.mint.pong.service.AnswerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -18,10 +19,15 @@ import java.util.concurrent.locks.ReentrantLock;
 @Component
 public class HelloWorldHandler {
 
+    @Value("${pong.time-window-nano}")
+    private int timeWindowNano;
+
     @Autowired
     private AnswerService service;
+
     private final ReentrantLock lock = new ReentrantLock();
     private final String LOCK_TIME_KEY = "lock_time";
+
 
     private ConcurrentHashMap<String, Long> map = new ConcurrentHashMap<>(1);
 
@@ -29,7 +35,7 @@ public class HelloWorldHandler {
         lock.lock();
         try {
             long nanoTime = System.nanoTime();
-            if (map.size() == 0 || (nanoTime >= map.get(LOCK_TIME_KEY) + 1000_000_000)) {
+            if (map.size() == 0 || (nanoTime >= map.get(LOCK_TIME_KEY) + timeWindowNano)) {
                 String word = service.sayWorld();
                 map.clear();
                 map.put(LOCK_TIME_KEY, nanoTime);

@@ -10,8 +10,13 @@ spring:
 
 logging:
   level:
-    root: fatal
+    root: info
     com.mint.ping.service.Ping: info
   file:
-    path: pinglogs
+    path: ping-logs
     name: ${logging.file.path}/log-${server.port}.txt
+
+ping:
+  pong-service_url: http://localhost:8090/sayWorld
+  request-interval-milliseconds: 1000
+  max-fail-number: 5

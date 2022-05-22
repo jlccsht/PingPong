@@ -11,28 +11,36 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
 /**
- * 进程锁，用于在多个进程间实现节流控制
+ * <p>Process lock, use for rate limit control between multi process in same device.</p>
+ *
+ * <p>Process lock based {@link FileLock} class. Successful acquisition of process lock
+ * depends on the result of comparision of  lockTime of long and lockNumber of int
+ * in lock file and current time, <tt>TIME_WINDOW_NANO</tt>, <tt>MAX_LOCK_NUMBER</tt></p>
  */
 @Slf4j
 @Component
 public class ProcessLock implements Serializable {
 
-    // 允许的最大锁定次数
+    /** Maximum number of locks allowed */
     private final int MAX_LOCK_NUMBER = 2;
 
-    // 进程锁时间窗口
+    /** time window of process lock, in milliseconds */
     private final int TIME_WINDOW_NANO = 1000_000_000;
 
-    // 进程锁使用的文件名
+    /** file name of process lock */
     private final String LOCK_FILE_NAME = "lock.txt";
 
-    // 锁定时间
+    /** time of process lock acquired */
     private long lockTime;
 
-    // 锁定次数
+    /** number of process lock used in same time window */
     private int lockNumber;
 
-    // canLock 为 false时，锁不可用，不可以获取锁
+    /**
+     * use for lock control
+     * when false, never got lock
+     * when true, the lock is ready for acquire
+     */
     private boolean canLock = true;
     private RandomAccessFile file = null;
     private FileChannel channel = null;
@@ -53,12 +61,11 @@ public class ProcessLock implements Serializable {
         }
         try {
             lock = channel.tryLock(1, 10, false);
-            // 获取文件锁失败
-            if (lock == null) {
+            if (lock == null) { // Failed to acquire file lock
                 return false;
             }
 
-            // 空文件代表第一次上锁，获取进程锁成功
+            // process lock can acquire as lock file is empty
             if (file.length() == 0) {
                 this.updateLock();
                 return true;
@@ -70,17 +77,17 @@ public class ProcessLock implements Serializable {
 
             long nanoTime = System.nanoTime();
 
-            // 时间窗口内已达到最大锁定次数，进程锁获取失败
+            // number of lock in current time window reach max value, can not acquire lock
             if (nanoTime < this.lockTime + TIME_WINDOW_NANO
                     && this.lockNumber >= MAX_LOCK_NUMBER) {
                 return false;
             }
 
-            // 时间窗口内未达到最大锁定次数，进程锁获取失败
+            // update lock info when lock acquired
             this.updateLock();
             return true;
         } catch (Exception e) {
-            log.error("获取进程锁出错");
+            log.error("Error acquiring process lock.");
         }
         return false;
     }
@@ -97,7 +104,7 @@ public class ProcessLock implements Serializable {
                 channel.close();
             }
         } catch (IOException e) {
-            log.error("释放进程锁出错");
+            log.error("Error releasing process lock.");
         }
     }
 
@@ -106,20 +113,20 @@ public class ProcessLock implements Serializable {
             long nanoTime = System.nanoTime();
             if (file.length() == 0 ||
                     nanoTime >= this.lockTime + TIME_WINDOW_NANO) {
-                // 当前时间超过锁定时间窗口，设置全新的进程锁
+                // when current time exceed lock time window, set up a new process lock.
                 this.file.seek(0);
                 file.writeLong(nanoTime);
                 file.write(1);
             } else if (nanoTime < this.lockTime + TIME_WINDOW_NANO
                     && this.lockNumber < MAX_LOCK_NUMBER) {
-                // 当前时间窗口未达到最大锁定次数
+                // The current time window has not reach the maximum number of locks.
                 this.file.seek(0);
                 file.writeLong(this.lockTime);
                 file.write(this.lockNumber + 1);
             }
             return true;
         } catch (IOException e) {
-            log.error("更新进程锁出错");
+            log.error("An error occured with the update process lock.");
         }
         return false;
     }
