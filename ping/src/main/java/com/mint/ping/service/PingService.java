@@ -24,15 +24,16 @@ public class PingService {
     @Value("${lock.lock-file-name}")
     private String lockFileName;
 
-
     private final String SEND_WORD = "Hello";
 
-    public synchronized String startPing() {
+    public String startPing() {
         ProcessLock lock = new ProcessLock(maxLockNumber,timeWindowNano,lockFileName);
         boolean success = lock.tryLock();
+        if (success) {
+            log.info("got lock & send request");
+        }
         try {
             if (success) {
-                log.info("got lock & send request");
                 Mono<String> str = invokePong();
                 String answer = str.block();
                 if ("error".equals(answer) == false) {
@@ -48,7 +49,7 @@ public class PingService {
         return null;
     }
 
-    protected Mono<String> invokePong() {
+    public Mono<String> invokePong() {
         WebClient webClient = WebClient.builder().build();
         return webClient.post()
                 .uri(pongServiceUrl)

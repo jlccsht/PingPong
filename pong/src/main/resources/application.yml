@@ -10,7 +10,7 @@ logging:
     root: fatal
     com.mint: info
   file:
-    path: run/pong-logs/
+    path: ../run/pong-logs/
     name: ${logging.file.path}log-${server.port}.txt
 
 pong:

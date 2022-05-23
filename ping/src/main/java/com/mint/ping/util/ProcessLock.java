@@ -20,13 +20,13 @@ import java.nio.channels.FileLock;
 public class ProcessLock implements Serializable {
 
     /** Maximum number of locks allowed */
-    private int maxLockNumber = 2;
+    private int maxLockNumber;
 
     /** time window of process lock, in milliseconds */
-    private int timeWindowNano = 1000_000_000;
+    private int timeWindowNano;
 
     /** file name of process lock */
-    private String lockFileName = "run/lock.txt";
+    private String lockFileName;
 
     /** time of process lock acquired */
     private long lockTime;
@@ -50,7 +50,7 @@ public class ProcessLock implements Serializable {
     }
 
     public ProcessLock() {
-        init(this.lockFileName);
+        this(2, 1000_000_000, "run/lock.txt");
     }
 
     public ProcessLock(int maxLockNumber, int timeWindowNano, String lockFileName ) {
@@ -61,7 +61,7 @@ public class ProcessLock implements Serializable {
         init(this.lockFileName);
     }
 
-    private void init(String lockFileName) {
+    private void init(String lockFileName){
         try {
             file = new RandomAccessFile(lockFileName, "rw");
             channel = file.getChannel();
@@ -76,7 +76,7 @@ public class ProcessLock implements Serializable {
             return false;
         }
         try {
-            lock = channel.tryLock(1, 10, false);
+            lock = channel.tryLock(1, 9, false);
             if (lock == null) { // Failed to acquire file lock
                 status = false;
                 return false;
@@ -107,8 +107,9 @@ public class ProcessLock implements Serializable {
             this.updateLock();
             return true;
         } catch (Exception e) {
-            log.error("Error acquiring process lock.");
+            log.error("Error acquiring process lock." + e);
         }
+        status = false;
         return false;
     }
 
@@ -146,7 +147,7 @@ public class ProcessLock implements Serializable {
                 file.write(this.lockNumber + 1);
             }
             return true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("An error occured with the update process lock.");
         }
         return false;

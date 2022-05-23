@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.concurrent.TimeUnit;
+
 @SpringBootTest(classes = {PingApplication.class})
 class PingServiceTest {
 
@@ -15,7 +17,14 @@ class PingServiceTest {
     @Test
     void startPing() {
         Assertions.assertDoesNotThrow(() -> {
-            pingService.startPing();
+            for (int i = 0; i < 50; i++) {
+                pingService.startPing();
+                try {
+                    TimeUnit.MILLISECONDS.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         });
     }
 }

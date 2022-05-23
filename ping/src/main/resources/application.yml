@@ -13,17 +13,17 @@ logging:
     root: info
     com.mint.ping.service.Ping: info
   file:
-    path: run/ping-logs/
+    path: ../run/ping-logs/
     name: ${logging.file.path}log-${server.port}.txt
   charset:
     file: UTF-8
 
 ping:
   pong-service_url: http://localhost:8090/sayWorld
-  request-interval-milliseconds: 1000
+  request-interval-milliseconds: 100
   max-fail-number: 5
 
 lock:
   max-lock-number: 2
   time-window-nano: 1000_000_000
-  lock-file-name: run/lock.txt
+  lock-file-name: ../run/lock.txt

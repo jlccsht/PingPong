@@ -3,6 +3,8 @@ package com.mint.ping.task;
 import com.mint.ping.PingApplication;
 import com.mint.ping.service.PingService;
 import org.junit.jupiter.api.*;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux;
@@ -11,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,16 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class AutoPingTest {
 
     @Value("${logging.file.path}")
-    private String strPath;
+    private String logFilePath;
 
     @Autowired
     private WebTestClient client;
 
     @Autowired
     private AutoPing autoPing;
-
-    @Autowired
-    private PingService ping;
 
     @Test
     @Order(1)
@@ -49,7 +49,7 @@ class AutoPingTest {
 
         Map<String, Integer> map = new HashMap<>();
         try {
-            logRealCheck(map, strPath);
+            logRealCheck(map, logFilePath);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,18 +61,18 @@ class AutoPingTest {
     void logCheck() throws IOException {
         Map<String, Integer> map = new HashMap<>();
         try {
-            logRealCheck(map, strPath);
+            logRealCheck(map, logFilePath);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void logRealCheck(Map<String, Integer> map,
-                              String strPath) throws IOException {
-        Path path = Paths.get(strPath);
+                              String logFilePath) throws IOException {
+        Path path = Paths.get(logFilePath);
         Files.list(path).forEach((f) -> {
             try {
-                Files.lines(Paths.get(strPath + f.getFileName())).forEach((line) -> {
+                Files.lines(Paths.get(logFilePath + f.getFileName()),Charset.forName("UTF-8")).forEach((line) -> {
                     if (line.indexOf("INFO") > -1) {
                         String second = line.substring(0, line.indexOf("INFO") - 6);
                         String msg = line.substring(line.lastIndexOf(":") + 2);

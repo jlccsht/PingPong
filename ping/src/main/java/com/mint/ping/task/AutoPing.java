@@ -29,10 +29,6 @@ public class AutoPing implements Runnable {
 
     private int failNumer = 0;
 
-    public void setFailNumer(int failNumer) {
-        this.failNumer = failNumer;
-    }
-
     @PostConstruct
     private void start() {
         new Thread(this).start();
@@ -41,17 +37,16 @@ public class AutoPing implements Runnable {
     @Override
     public void run() {
         int i = 0;
-        while (failNumer < maxFailNumber) {
+        while (true) {
             if (this.number!= null) {
-                i++;
-                if (i > number) {
+                if (i <= number) {
+                    i++;
+                } else {
                     break;
                 }
             }
             String answer = pingService.startPing();
-            if ("error".equals(answer)) {
-                failNumer++;
-            }
+
             try {
                 TimeUnit.MILLISECONDS.sleep(requestIntervalMilliseconds);
             } catch (InterruptedException e) {
