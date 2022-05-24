@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
@@ -17,6 +19,15 @@ class ProcessLockTest {
     private String lockFileName;
 
     ProcessLock lock = null;
+
+    @BeforeAll
+    public static void prepare() {
+        try {
+            Files.deleteIfExists(Paths.get("../run/lock.txt"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Test
     public void lockFileUsed() {

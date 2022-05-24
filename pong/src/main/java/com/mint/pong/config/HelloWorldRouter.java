@@ -13,7 +13,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 public class HelloWorldRouter {
     @Bean
     public RouterFunction<ServerResponse> routeHelloWorld(HelloWorldHandler helloWorldHandler) {
-        System.err.println("router");
         return RouterFunctions.route(
                 RequestPredicates.POST("/sayWorld").and(RequestPredicates.accept(MediaType.TEXT_PLAIN)),
                 helloWorldHandler::sayWorld
