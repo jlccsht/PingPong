@@ -25,7 +25,6 @@ class ProcessLockTest {
         try {
             Files.deleteIfExists(Paths.get("../run/lock.txt"));
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

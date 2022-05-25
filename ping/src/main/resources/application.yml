@@ -20,7 +20,7 @@ logging:
 
 ping:
   pong-service_url: http://localhost:8090/sayWorld
-  request-interval-milliseconds: 100
+  request-interval-milliseconds: 1000
   max-fail-number: 5
 
 lock:

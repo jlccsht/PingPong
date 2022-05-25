@@ -1,10 +1,7 @@
 package com.mint.ping.task;
 
 import com.mint.ping.PingApplication;
-import com.mint.ping.service.PingService;
 import org.junit.jupiter.api.*;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux;
@@ -71,23 +68,25 @@ class AutoPingTest {
                               String logFilePath) throws IOException {
         Path path = Paths.get(logFilePath);
         Files.list(path).forEach((f) -> {
-            try {
-                Files.lines(Paths.get(logFilePath + f.getFileName()),Charset.forName("UTF-8")).forEach((line) -> {
-                    if (line.indexOf("INFO") > -1) {
-                        String second = line.substring(0, line.indexOf("INFO") - 6);
-                        String msg = line.substring(line.lastIndexOf(":") + 2);
-                        if ("got lock & send request".equals(msg)) {
-                            if (map.containsKey(second)) {
-                                Integer num = map.get(second);
-                                map.put(second, num + 1);
-                            } else {
-                                map.put(second, 1);
+            if (f.getFileName().toString().endsWith("txt")) {
+                try {
+                    Files.lines(Paths.get(logFilePath + f.getFileName()), Charset.forName("UTF-8")).forEach((line) -> {
+                        if (line.indexOf("INFO") > -1) {
+                            String second = line.substring(0, line.indexOf("INFO") - 6);
+                            String msg = line.substring(line.lastIndexOf(":") + 2);
+                            if ("got lock & send request".equals(msg)) {
+                                if (map.containsKey(second)) {
+                                    Integer num = map.get(second);
+                                    map.put(second, num + 1);
+                                } else {
+                                    map.put(second, 1);
+                                }
                             }
                         }
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
+                    });
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
